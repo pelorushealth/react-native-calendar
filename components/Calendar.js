@@ -57,6 +57,7 @@ export default class Calendar extends Component {
     startDate: PropTypes.any,
     titleFormat: PropTypes.string,
     today: PropTypes.any,
+    maxDate: PropTypes.any,
     weekStart: PropTypes.number,
     calendarFormat: PropTypes.string
   };
@@ -76,6 +77,7 @@ export default class Calendar extends Component {
     showEventIndicators: false,
     startDate: moment().format('YYYY-MM-DD'),
     titleFormat: 'MMMM YYYY',
+    maxDate: moment().add(1, 'year'),
     weekStart: 1,
     calendarFormat: 'monthly' // weekly or monthly
   };
@@ -230,22 +232,25 @@ export default class Calendar extends Component {
       const thisMoment = moment(startOfArgMoment).add(dayIndex, 'day');
 
       if (dayIndex >= 0 && dayIndex < argDaysCount) {
+        const disabled = thisMoment.isAfter(this.props.maxDate);
+        const onPress = disabled ? null : () => {
+          this.selectDate(thisMoment);
+          this.props.onDateSelect && this.props.onDateSelect(thisMoment ? thisMoment.format(): null );
+        }
         days.push((
           <Day
-             startOfMonth={startOfArgMoment}
-             isWeekend={isoWeekday === 0 || isoWeekday === 6}
-             key={`${renderIndex}`}
-             onPress={() => {
-               this.selectDate(thisMoment);
-               this.props.onDateSelect && this.props.onDateSelect(thisMoment ? thisMoment.format(): null );
-            }}
+            startOfMonth={startOfArgMoment}
+            isWeekend={isoWeekday === 0 || isoWeekday === 6}
+            key={`${renderIndex}`}
+            onPress={onPress}
             caption={`${thisMoment.format('D')}`}
             isToday={todayMoment.format('YYYY-MM-DD') == thisMoment.format('YYYY-MM-DD')}
             isSelected={selectedMoment.isSame(thisMoment)}
             event={events && events[dayIndex]}
             showEventIndicators={this.props.showEventIndicators}
             customStyle={this.props.customStyle}
-            />
+            disabled={disabled}
+          />
         ));
       } else {
         days.push(<Day key={`${renderIndex}`} filler customStyle={this.props.customStyle} />);
